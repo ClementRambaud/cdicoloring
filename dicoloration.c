@@ -22,8 +22,17 @@ typedef int bool;
 
 void add_edge(graph* g, int u, int v)
 {
-  fprintf(stderr, "add_edge(g, %d, %d) \n", u, v); 
+  // fprintf(stderr, "add_edge(g, %d, %d) \n", u, v); 
   ADJ_SET(g,u) = ADD(v, ADJ_SET(g,u));
+}
+
+void empty_graph(graph* g, int n)
+{
+  int i;
+  for (i=0; i<n; ++i)
+  {
+    g[i] = EMPTY;
+  }
 }
 
 void read_digraph6(FILE *fi, graph* d, int *n)
@@ -80,7 +89,7 @@ void print_graph(FILE* fi, graph* g, int n)
   for (i=0; i<n; ++i)
   {
     fprintf(fi, "%d: ", i);
-    for (j=0; j<n; ++i)
+    for (j=0; j<n; ++j)
     {
       if IS_ADJ(g, i, j)
       {
@@ -89,6 +98,7 @@ void print_graph(FILE* fi, graph* g, int n)
     }
     fprintf(fi, "\n");
   }
+  fprintf(fi, "\n");
 }
 
 void write_digraph6(FILE* fi, graph* d, int n)
@@ -109,9 +119,9 @@ void write_digraph6(FILE* fi, graph* d, int n)
   {
     for (j=0; j<n; ++j)
     {
-      if (IS_ADJ(d, i, j))
+      if (IS_ADJ(d, j, i))
       {
-        fprintf(stderr, "is_adj %d %d \n", i, j);
+        // fprintf(stderr, "is_adj %d %d \n", i, j);
         v = 1;
       }
       else
@@ -119,9 +129,11 @@ void write_digraph6(FILE* fi, graph* d, int n)
         v = 0;
       }
       nb = i * n + j;
-      index_char = n / 6;
+      index_char = nb / 6;
       index = nb % 6;
-      result[index_char] |= (v >> (5-index));
+      // fprintf(stderr, "index = %d, index_char = %d, (v << (5-index)) = %d \n",
+      //         index, index_char, (v << (5 - index)));
+      result[index_char] |= (v << (5 - index));
       // fprintf(stderr, "%x\n", result[index_char]);
     }
   }
@@ -129,7 +141,7 @@ void write_digraph6(FILE* fi, graph* d, int n)
   fputc(63 + n, fi); /* nb of vertices */
   for (i=0; i<taille; ++i)
   {
-    fputc(result[i], fi);
+    fputc(result[i] + 63, fi);
   }
   fputc('\n', fi);
 }
@@ -137,6 +149,7 @@ void write_digraph6(FILE* fi, graph* d, int n)
 int main()
 {
     graph d[MAXN * MAXN];
+    empty_graph(d, MAXN);
     int n;
     read_digraph6(stdin, d, &n);
     print_graph(stderr, d, n);
