@@ -190,6 +190,7 @@ bool has_cycle_mask(graph* g, int n, set mask)
     while (top>=0) /* while the stack is not empty */
     {
       v = stack[top]; /* we process the vertex on the top */
+      state[v] = INPROGRESS;
       // fprintf(stderr, "we pop %d \n", v);
  
       process_finished = TRUE;
@@ -213,7 +214,6 @@ bool has_cycle_mask(graph* g, int n, set mask)
             case NONVISITED: /* we push w on the stack */
               ++top;
               stack[top] = w;
-              state[w] = INPROGRESS;
               process_finished = FALSE;
               // fprintf(stderr, "we push %d \n", w);
               break;
@@ -240,7 +240,8 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
                  int next_vertex)
  /* next_vertex: next vertex to add to acyclic */
 {
-  // fprintf(stderr, "k = %d,subg = %x, acyclic = %x \n", k,
+  // fprintf(stderr, "n = %d, next_vertex = %d, k = %d,subg = %x, acyclic = %x \n", n,
+  //         next_vertex, k,
   //         current_subgraph, current_acyclic);
   if (k==0)
   {
