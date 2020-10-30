@@ -50,6 +50,7 @@ void read_digraph6(FILE *fi, graph* d, int *n)
   int matij;
   char line[MAXN*MAXN]; /* it is indeed smaller  <------------ */
 
+  empty_graph(d, MAXN); /* clear the graph */
 
   c = fgetc(fi);
   if (c!='&') /* if it is not a directed graph */
@@ -79,7 +80,7 @@ void read_digraph6(FILE *fi, graph* d, int *n)
       if (matij==1)
       {
         // fprintf(stderr, "is_adj %d %d \n", i ,j);
-        add_edge(d, i, j);
+        add_edge(d, j, i);
       }
     }
   }
@@ -122,7 +123,7 @@ void write_digraph6(FILE* fi, graph* d, int n)
   {
     for (j=0; j<n; ++j)
     {
-      if (IS_ADJ(d, j, i))
+      if (IS_ADJ(d, i, j))
       {
         // fprintf(stderr, "is_adj %d %d \n", i, j);
         v = 1;
@@ -167,18 +168,13 @@ bool has_cycle_mask(graph* g, int n, set mask)
   int stack[n];
   int top = -1; /* top of the stack */
 
-  /* we put all vertices on the stack */
-  for (v=0; v<n; ++v)
-  {
-    ++top;
-    stack[top] = v;
-  }
-
-  set gv; /* current list of successors */
+  // set gv; /* current list of successors */
+  
+  bool process_finished;
 
   for (u=0; u<n; ++u)
   {
-    if (state[u]!=NONVISITED)
+    if ((state[u]!=NONVISITED))
     {
       break;
     }
@@ -186,23 +182,29 @@ bool has_cycle_mask(graph* g, int n, set mask)
     /* we push u */
     ++top;
     stack[top] = u;
+    state[u] = INPROGRESS;
+    // fprintf(stderr, "--> we push %d \n", u);
 
     while (top>=0) /* while the stack is not empty */
     {
       v = stack[top]; /* we process the vertex on the top */
-      --top;
-      
-      gv = ADJ_SET(g, v);
+      // fprintf(stderr, "we pop %d \n", v);
+ 
+      process_finished = TRUE;
+      // gv = ADJ_SET(g, v);
       for (w=0; w<n; ++w)
       {
-        if (IN(gv, w)) /* if w is a successor of v */
+        // fprintf(stderr, "we try (v, w) = (%d , %d) \n", v, w);
+        if (IS_ADJ(g, v, w)) /* if w is a successor of v */
         {
+          // fprintf(stderr, "-------------> TRUE, state[w]=%d \n", state[w]);
           switch (state[w])
           {
             case INPROGRESS: /* we have any cycle */
+              // fprintf(stderr, "cycle found at %d \n", w);
               return TRUE;
               break;
-            
+ 
             case VISITED: /* we don't need to go further */
               break;
 
@@ -210,12 +212,17 @@ bool has_cycle_mask(graph* g, int n, set mask)
               ++top;
               stack[top] = w;
               state[w] = INPROGRESS;
-              fprintf(stderr, "we push %d \n", w);
+              process_finished = FALSE;
+              // fprintf(stderr, "we push %d \n", w);
               break;
           }
         }
       }
-      state[v] = VISITED;
+      if (process_finished)
+      {
+        --top;
+        state[v] = VISITED;
+      }
     }
   }
   return FALSE;
@@ -233,7 +240,6 @@ int main()
     int n;
     while (1)
     {
-      empty_graph(d, MAXN); /* clear the graph */
       read_digraph6(stdin, d, &n);
       if (feof(stdin)) break;
       // print_graph(stderr, d, n);
