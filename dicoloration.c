@@ -168,13 +168,13 @@ bool has_cycle_mask(graph* g, int n, set mask)
   int stack[n];
   int top = -1; /* top of the stack */
 
-  // set gv; /* current list of successors */
+  set gv; /* current list of successors */
   
   bool process_finished;
 
   for (u=0; u<n; ++u)
   {
-    if ((state[u]!=NONVISITED))
+    if ((state[u]!=NONVISITED) || (!IN(u, mask)))
     {
       break;
     }
@@ -191,11 +191,11 @@ bool has_cycle_mask(graph* g, int n, set mask)
       // fprintf(stderr, "we pop %d \n", v);
  
       process_finished = TRUE;
-      // gv = ADJ_SET(g, v);
+      gv = ADJ_SET(g, v);
       for (w=0; w<n; ++w)
       {
         // fprintf(stderr, "we try (v, w) = (%d , %d) \n", v, w);
-        if (IS_ADJ(g, v, w)) /* if w is a successor of v */
+        if (IN(w, gv) && (IN(w, mask))) /* if w is a successor of v */
         {
           // fprintf(stderr, "-------------> TRUE, state[w]=%d \n", state[w]);
           switch (state[w])
@@ -234,6 +234,46 @@ bool has_cycle(graph* g, int n)
 }
 
 
+bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acyclic,
+                 int next_vertex)
+ /* next_vertex: next vertex to add to acyclic */
+{
+  fprintf(stderr, "subg = %x, acyclic = %x \n", current_subgraph, current_acyclic);
+  if (k==0)
+  {
+    return (n==0);
+  }
+
+  if (k==1)
+  {
+    return !has_cycle_mask(d, n, current_subgraph);
+  }
+  
+  /* if acyclic is acyclic maximal? */
+  if (next_vertex >= n)
+  {
+    return is_kcol_aux(d, n, k - 1, DIFF(current_subgraph, current_acyclic), EMPTY, 0);
+  }
+
+  /* if we can not add next_vertex */
+  if (!IN(next_vertex, current_subgraph) ||
+      has_cycle_mask(d, n, UNION(current_acyclic, SINGLETON(next_vertex))))
+  {
+    return is_kcol_aux(d, n, k, current_subgraph, current_acyclic, next_vertex + 1);
+  }
+
+  return (is_kcol_aux(d, n, k, current_subgraph, 
+                      UNION(current_acyclic, SINGLETON(next_vertex)), next_vertex + 1) ||
+          is_kcol_aux(d, n, k, current_subgraph, current_acyclic, next_vertex + 1));
+}
+
+
+bool is_kcol(graph* d, int n, int k)
+{
+  return is_kcol_aux(d, n, k, ALL, EMPTY, 0); 
+}
+
+
 int main()
 {
     graph d[MAXN * MAXN];
@@ -243,7 +283,7 @@ int main()
       read_digraph6(stdin, d, &n);
       if (feof(stdin)) break;
       // print_graph(stderr, d, n);
-      if (!has_cycle(d, n))
+      if (!is_kcol(d, n, 2))
       {
         write_digraph6(stdout, d, n);
       }
