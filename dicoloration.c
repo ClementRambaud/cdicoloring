@@ -5,8 +5,11 @@
 typedef int set; /* binary representation */
 typedef set graph; /* graph are array of int */
 typedef int bool;
+#define TRUE 1
+#define FALSE 0
 
 #define EMPTY 0
+#define ALL (~EMPTY)
 #define UNION(a,b) a | b
 #define INTERSECT(a,b) a & b
 #define DIFF(a,b) a & (~b)
@@ -46,7 +49,7 @@ void read_digraph6(FILE *fi, graph* d, int *n)
   int index;
   int matij;
   char line[MAXN*MAXN]; /* it is indeed smaller  <------------ */
-  // graph d[MAXN*MAXN];
+
 
   c = fgetc(fi);
   if (c!='&') /* if it is not a directed graph */
@@ -146,14 +149,99 @@ void write_digraph6(FILE* fi, graph* d, int n)
   fputc('\n', fi);
 }
 
+#define NONVISITED 0
+#define VISITED    1
+#define INPROGRESS 2
+bool has_cycle_mask(graph* g, int n, set mask)
+{
+  int u,v,w;
+
+  bool state[n];
+  /* clear states */
+  int i;
+  for (i=0; i<n; ++i)
+  {
+    state[i] = NONVISITED;
+  }
+  
+  int stack[n];
+  int top = -1; /* top of the stack */
+
+  /* we put all vertices on the stack */
+  for (v=0; v<n; ++v)
+  {
+    ++top;
+    stack[top] = v;
+  }
+
+  set gv; /* current list of successors */
+
+  for (u=0; u<n; ++u)
+  {
+    if (state[u]!=NONVISITED)
+    {
+      break;
+    }
+
+    /* we push u */
+    ++top;
+    stack[top] = u;
+
+    while (top>=0) /* while the stack is not empty */
+    {
+      v = stack[top]; /* we process the vertex on the top */
+      --top;
+      
+      gv = ADJ_SET(g, v);
+      for (w=0; w<n; ++w)
+      {
+        if (IN(gv, w)) /* if w is a successor of v */
+        {
+          switch (state[w])
+          {
+            case INPROGRESS: /* we have any cycle */
+              return TRUE;
+              break;
+            
+            case VISITED: /* we don't need to go further */
+              break;
+
+            case NONVISITED: /* we push w on the stack */
+              ++top;
+              stack[top] = w;
+              state[w] = INPROGRESS;
+              fprintf(stderr, "we push %d \n", w);
+              break;
+          }
+        }
+      }
+      state[v] = VISITED;
+    }
+  }
+  return FALSE;
+}
+
+bool has_cycle(graph* g, int n)
+{
+  return has_cycle_mask(g, n, ALL);
+}
+
+
 int main()
 {
     graph d[MAXN * MAXN];
-    empty_graph(d, MAXN);
     int n;
-    read_digraph6(stdin, d, &n);
-    print_graph(stderr, d, n);
-    write_digraph6(stdout, d, n);
+    while (1)
+    {
+      empty_graph(d, MAXN); /* clear the graph */
+      read_digraph6(stdin, d, &n);
+      if (feof(stdin)) break;
+      // print_graph(stderr, d, n);
+      if (!has_cycle(d, n))
+      {
+        write_digraph6(stdout, d, n);
+      }
+    }
 }
 
 
