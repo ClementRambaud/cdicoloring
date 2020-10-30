@@ -38,6 +38,52 @@ void empty_graph(graph* g, int n)
   }
 }
 
+int deg_out(graph* g, int n, int v)
+{
+  set gv = ADJ_SET(g, v);
+  int res = 0;
+  int w;
+  for (w=0; w<n; ++w)
+  {
+    if (IN(w, gv)) ++res;
+  }
+  return res;
+}
+
+int deg_in(graph* g, int n, int v)
+{
+  int res = 0;
+  int w;
+  for (w=0; w<n; ++w)
+  {
+    if (IS_ADJ(g, w, v)) ++res;
+  }
+  return res;
+}
+
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+int deg_out_min(graph* g, int n)
+{
+  int res = 1<<30;
+  int v;
+  for (v=0; v<n; ++v)
+  {
+    res = MIN(res, deg_in(g,n,v));
+  }
+  return res;
+}
+
+int deg_in_min(graph* g, int n)
+{
+  int res = 1<<30;
+  int v;
+  for (v=0; v<n; ++v)
+  {
+    res = MIN(res, deg_out(g,n,v));
+  }
+  return res;
+}
+
 void read_digraph6(FILE *fi, graph* d, int *n)
 /* fi: file;
  * n: the number of vertices will be written here;
@@ -295,6 +341,7 @@ bool is_kvertex_critical(graph* d, int n, int k)
   return TRUE;
 }
 
+
 int main()
 {
     graph d[MAXN * MAXN];
@@ -305,7 +352,8 @@ int main()
       read_digraph6(stdin, d, &n);
       if (feof(stdin)) break;
       // print_graph(stderr, d, n);
-      if (is_kvertex_critical(d, n, k))
+      if ((deg_out_min(d,n) >= k-1) && (deg_in_min(d,n) >= k-1) &&
+          is_kvertex_critical(d, n, k))
       {
         write_digraph6(stdout, d, n);
       }
