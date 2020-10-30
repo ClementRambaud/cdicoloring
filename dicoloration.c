@@ -156,27 +156,29 @@ void write_digraph6(FILE* fi, graph* d, int n)
 bool has_cycle_mask(graph* g, int n, set mask)
 {
   int u,v,w;
+  // fprintf(stderr, "is_acyclic? n = %d; mask = %x \n", n, mask);
 
   bool state[n];
   /* clear states */
-  int i;
-  for (i=0; i<n; ++i)
+  for (u=0; u<n; ++u)
   {
-    state[i] = NONVISITED;
+    state[u] = NONVISITED;
+    // fprintf(stderr, "IN(%d, mask)? %d \n", u, IN(u, mask));
   }
-  
+ 
   int stack[n];
   int top = -1; /* top of the stack */
 
   set gv; /* current list of successors */
-  
+ 
   bool process_finished;
 
   for (u=0; u<n; ++u)
   {
+    // fprintf(stderr, "IN(%d, %x)? %d \n", u, mask, IN(u, mask));
     if ((state[u]!=NONVISITED) || (!IN(u, mask)))
     {
-      break;
+      continue;
     }
 
     /* we push u */
@@ -195,9 +197,9 @@ bool has_cycle_mask(graph* g, int n, set mask)
       for (w=0; w<n; ++w)
       {
         // fprintf(stderr, "we try (v, w) = (%d , %d) \n", v, w);
-        if (IN(w, gv) && (IN(w, mask))) /* if w is a successor of v */
+        if (IN(w, gv) && IN(w, mask)) /* if w is a successor of v in mask */
         {
-          // fprintf(stderr, "-------------> TRUE, state[w]=%d \n", state[w]);
+          // fprintf(stderr, "-------------> TRUE, w= %d, state[w]=%d \n", w, state[w]);
           switch (state[w])
           {
             case INPROGRESS: /* we have any cycle */
@@ -238,7 +240,8 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
                  int next_vertex)
  /* next_vertex: next vertex to add to acyclic */
 {
-  fprintf(stderr, "subg = %x, acyclic = %x \n", current_subgraph, current_acyclic);
+  // fprintf(stderr, "k = %d,subg = %x, acyclic = %x \n", k,
+  //         current_subgraph, current_acyclic);
   if (k==0)
   {
     return (n==0);
@@ -249,21 +252,22 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
     return !has_cycle_mask(d, n, current_subgraph);
   }
   
-  /* if acyclic is acyclic maximal? */
   if (next_vertex >= n)
   {
+    // fprintf(stderr, "final acyclic = %x \n", current_acyclic);
     return is_kcol_aux(d, n, k - 1, DIFF(current_subgraph, current_acyclic), EMPTY, 0);
   }
 
   /* if we can not add next_vertex */
   if (!IN(next_vertex, current_subgraph) ||
-      has_cycle_mask(d, n, UNION(current_acyclic, SINGLETON(next_vertex))))
+      has_cycle_mask(d, n, ADD(next_vertex,current_acyclic)))
   {
     return is_kcol_aux(d, n, k, current_subgraph, current_acyclic, next_vertex + 1);
   }
 
+  /* if we can add the vertex */
   return (is_kcol_aux(d, n, k, current_subgraph, 
-                      UNION(current_acyclic, SINGLETON(next_vertex)), next_vertex + 1) ||
+                      ADD(next_vertex, current_acyclic), next_vertex + 1) ||
           is_kcol_aux(d, n, k, current_subgraph, current_acyclic, next_vertex + 1));
 }
 
@@ -273,17 +277,34 @@ bool is_kcol(graph* d, int n, int k)
   return is_kcol_aux(d, n, k, ALL, EMPTY, 0); 
 }
 
+bool is_kvertex_critical(graph* d, int n, int k)
+{
+  if (is_kcol(d, n, k-1) || !is_kcol(d, n, k))
+  {
+    return FALSE;
+  }
+  int v;
+  for (v=0; v<n; ++v)
+  {
+    if (!is_kcol_aux(d, n, k-1, DIFF(ALL, SINGLETON(v)), EMPTY, 0))
+    {
+      return FALSE;
+    }
+  }
+  return TRUE;
+}
 
 int main()
 {
     graph d[MAXN * MAXN];
     int n;
+    const int k = 3;
     while (1)
     {
       read_digraph6(stdin, d, &n);
       if (feof(stdin)) break;
       // print_graph(stderr, d, n);
-      if (!is_kcol(d, n, 2))
+      if (is_kvertex_critical(d, n, k))
       {
         write_digraph6(stdout, d, n);
       }
