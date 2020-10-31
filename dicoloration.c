@@ -122,7 +122,6 @@ void read_digraph6(FILE *fi, graph* d, int *n)
   }
 }
 
-void read_digraph2(FILE* fi, graph* g);
 
 void print_graph(FILE* fi, graph* g, int n)
 {
