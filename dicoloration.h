@@ -18,7 +18,7 @@ typedef int bool;
 #define IN(x,a) (!ISEMPTY(INTERSECT(a, SINGLETON(x))))
 #define ADD(x, a) UNION(a, SINGLETON(x))
 #define DEL(x, a) DIFF(a, SINGLETON(x))
-#define MIN(a) __builtin_ctz(a)
+#define MIN_SET(a) __builtin_ctz(a)
 
 #define ADJ_SET(g, v) (g[v]) 
 #define IS_ADJ(g,u,v) IN(v, ADJ_SET(g, u))
