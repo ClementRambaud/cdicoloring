@@ -305,7 +305,7 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
     // we fix the next vertex in the next color class
     // we compute the first non colored vertex
     int t = __builtin_ctz(~current_subgraph);
-    return is_kcol_aux(d, n, k - 1, current_subgraph, SINGLETON(t), t);
+    return is_kcol_aux(d, n, k - 1, current_subgraph, SINGLETON(t), t+1);
   }
 
   /* if we can not add next_vertex */
