@@ -11,7 +11,7 @@ int main()
       if (feof(stdin)) break;
       // print_graph(stderr, d, n);
       if ((deg_out_min(d,n) >= k-1) && (deg_in_min(d,n) >= k-1) &&
-          is_kvertex_critical(d, n, k))
+          is_kcritical(d, n, k))
       {
         write_digraph6(stdout, d, n);
       }

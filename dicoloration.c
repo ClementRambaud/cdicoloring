@@ -2,8 +2,12 @@
 
 void add_edge(graph* g, int u, int v)
 {
-  // fprintf(stderr, "add_edge(g, %d, %d) \n", u, v); 
   ADJ_SET(g,u) = ADD(v, ADJ_SET(g,u));
+}
+
+void remove_edge(graph* g, int u, int v)
+{
+  ADJ_SET(g,u) = DEL(v, ADJ_SET(g,u));
 }
 
 void empty_graph(graph* g, int n)
@@ -12,6 +16,15 @@ void empty_graph(graph* g, int n)
   for (i=0; i<n; ++i)
   {
     g[i] = EMPTY;
+  }
+}
+
+void copy_graph(graph* g, graph* g2, int n)
+{
+  int v;
+  for(v=0; v<n; ++v)
+  {
+    ADJ_SET(g2, v) = ADJ_SET(g, v);
   }
 }
 
@@ -108,6 +121,8 @@ void read_digraph6(FILE *fi, graph* d, int *n)
     }
   }
 }
+
+void read_digraph2(FILE* fi, graph* g);
 
 void print_graph(FILE* fi, graph* g, int n)
 {
@@ -214,7 +229,7 @@ bool has_cycle_mask(graph* g, int n, set mask)
     {
       v = stack[top]; /* we process the vertex on the top */
       state[v] = INPROGRESS;
-      // fprintf(stderr, "we pop %d \n", v);
+      // fprintf(stderr, "we read %d \n", v);
  
       process_finished = TRUE;
       gv = ADJ_SET(g, v);
@@ -224,28 +239,29 @@ bool has_cycle_mask(graph* g, int n, set mask)
         if (IN(w, gv) && IN(w, mask)) /* if w is a successor of v in mask */
         {
           // fprintf(stderr, "-------------> TRUE, w= %d, state[w]=%d \n", w, state[w]);
-          switch (state[w])
-          {
-            case INPROGRESS: /* we have any cycle */
-              // fprintf(stderr, "cycle found at %d \n", w);
-              return TRUE;
-              break;
- 
-            case VISITED: /* we don't need to go further */
-              break;
-
-            case NONVISITED: /* we push w on the stack */
-              ++top;
-              stack[top] = w;
-              process_finished = FALSE;
-              // fprintf(stderr, "we push %d \n", w);
-              break;
+          if (state[w] == INPROGRESS)
+          { /* we have any cycle */
+            // fprintf(stderr, "cycle found at %d \n", w);
+            return TRUE;
+          }
+          else if (state[w] == VISITED)
+          { /* we don't need to go further */
+            ;
+          }
+          else if (state[w] == NONVISITED)
+          { /* we push w on the stack */
+            ++top;
+            stack[top] = w;
+            process_finished = FALSE;
+            // fprintf(stderr, "we push %d \n", w);
+            break;
           }
         }
       }
       if (process_finished)
       {
         --top;
+        // fprintf(stderr, "we read %d \n", v);
         state[v] = VISITED;
       }
     }
@@ -264,8 +280,8 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
  /* next_vertex: next vertex to add to acyclic */
 {
   // fprintf(stderr, "n = %d, next_vertex = %d, k = %d,subg = %x, acyclic = %x \n", n,
-  //         next_vertex, k,
-  //         current_subgraph, current_acyclic);
+  //        next_vertex, k,
+  //        current_subgraph, current_acyclic);
   if (k==0)
   {
     return (n==0);
@@ -317,5 +333,36 @@ bool is_kvertex_critical(graph* d, int n, int k)
   }
   return TRUE;
 }
+
+
+bool is_kcritical(graph* d, int n, int k)
+{
+  if (!is_kvertex_critical(d, n ,k))
+  {
+    return FALSE;
+  }
+
+  graph d2[MAXN * MAXN];
+  copy_graph(d, d2, n);
+
+  int v, w;
+  for (v=0; v<n; ++v)
+  {
+    for (w=0; w<n; ++w)
+    {
+      if (IS_ADJ(d, v, w))
+      {
+        remove_edge(d2, v, w);
+        if (!is_kcol(d2, n, k-1))
+        {
+          return FALSE;
+        }
+        add_edge(d2, v, w);
+      }
+    }
+  }
+  return TRUE;
+}
+
 
 

@@ -1,5 +1,5 @@
 all: 
-	gcc -Wall -O4 -o main main.c dicoloration.c
+	gcc -Wall -O4 -o is_kcritical.native main.c dicoloration.c
 
 
 

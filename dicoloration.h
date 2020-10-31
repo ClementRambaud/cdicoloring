@@ -17,6 +17,7 @@ typedef int bool;
 #define ISEMPTY(a) ((a)==EMPTY)
 #define IN(x,a) (!ISEMPTY(INTERSECT(a, SINGLETON(x))))
 #define ADD(x, a) UNION(a, SINGLETON(x))
+#define DEL(x, a) DIFF(a, SINGLETON(x))
 
 #define ADJ_SET(g, v) (g[v]) 
 #define IS_ADJ(g,u,v) IN(v, ADJ_SET(g, u))
@@ -24,6 +25,7 @@ typedef int bool;
 #define CEILING(p,q) (1 + ((p-1)/q))
 
 void add_edge(graph* g, int u, int v);
+void remove_edge(graph* g, int u, int v);
 
 void empty_graph(graph* g, int n);
 
@@ -52,5 +54,6 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph,
 bool is_kcol(graph* g, int n, int k);
 
 bool is_kvertex_critical(graph* d, int n, int k);
+bool is_kcritical(graph* d, int n, int k);
 
 
