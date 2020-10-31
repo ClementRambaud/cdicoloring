@@ -202,6 +202,12 @@ bool has_cycle_mask(graph* g, int n, set mask)
     state[u] = NONVISITED;
     // fprintf(stderr, "IN(%d, mask)? %d \n", u, IN(u, mask));
   }
+
+  int next_child[n];
+  for (u=0; u<n; ++u)
+  {
+    next_child[u] = 0;
+  }
  
   int stack[n];
   int top = -1; /* top of the stack */
@@ -232,9 +238,10 @@ bool has_cycle_mask(graph* g, int n, set mask)
  
       process_finished = TRUE;
       gv = ADJ_SET(g, v);
-      for (w=0; w<n; ++w)
+      for (w=next_child[v]; w<n; ++w)
       {
         // fprintf(stderr, "we try (v, w) = (%d , %d) \n", v, w);
+        ++next_child[v];
         if (IN(w, gv) && IN(w, mask)) /* if w is a successor of v in mask */
         {
           // fprintf(stderr, "-------------> TRUE, w= %d, state[w]=%d \n", w, state[w]);
@@ -313,7 +320,7 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
 
 bool is_kcol(graph* d, int n, int k)
 {
-  return is_kcol_aux(d, n, k, ALL, EMPTY, 0); 
+  return is_kcol_aux(d, n, k, ALL, SINGLETON(0), 1); 
 }
 
 bool is_kvertex_critical(graph* d, int n, int k)

@@ -1,10 +1,10 @@
 #include "dicoloration.h"
 
-int main()
+int main(int argc, char *argv[])
 {
+    char k = argv[1][0] - 48;
     graph d[MAXN * MAXN];
     int n;
-    const int k = 3;
     while (1)
     {
       read_digraph6(stdin, d, &n);
