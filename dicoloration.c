@@ -1,27 +1,4 @@
-#include <stdio.h>
-
-#define MAXN 32
-
-typedef int set; /* binary representation */
-typedef set graph; /* graph are array of int */
-typedef int bool;
-#define TRUE 1
-#define FALSE 0
-
-#define EMPTY 0
-#define ALL (~EMPTY)
-#define UNION(a,b) a | b
-#define INTERSECT(a,b) a & b
-#define DIFF(a,b) a & (~b)
-#define SINGLETON(x) (1 << x)
-#define ISEMPTY(a) ((a)==EMPTY)
-#define IN(x,a) (!ISEMPTY(INTERSECT(a, SINGLETON(x))))
-#define ADD(x, a) UNION(a, SINGLETON(x))
-
-#define ADJ_SET(g, v) (g[v]) 
-#define IS_ADJ(g,u,v) IN(v, ADJ_SET(g, u))
-
-#define CEILING(p,q) (1 + ((p-1)/q))
+#include "dicoloration.h" 
 
 void add_edge(graph* g, int u, int v)
 {
@@ -340,26 +317,5 @@ bool is_kvertex_critical(graph* d, int n, int k)
   }
   return TRUE;
 }
-
-
-int main()
-{
-    graph d[MAXN * MAXN];
-    int n;
-    const int k = 3;
-    while (1)
-    {
-      read_digraph6(stdin, d, &n);
-      if (feof(stdin)) break;
-      // print_graph(stderr, d, n);
-      if ((deg_out_min(d,n) >= k-1) && (deg_in_min(d,n) >= k-1) &&
-          is_kvertex_critical(d, n, k))
-      {
-        write_digraph6(stdout, d, n);
-      }
-    }
-}
-
-
 
 
