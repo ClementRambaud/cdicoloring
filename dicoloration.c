@@ -103,7 +103,6 @@ void read_digraph6(FILE *fi, graph* d, int *n)
     {
       // nb = (*n) * i + j;
       index = nb % 6;
-      // c = line[nb / 6] - 63;
       if (index == 0) /* we need another character */
       {
         c = fgetc(fi) - 63;
@@ -183,23 +182,16 @@ void write_digraph6(FILE* fi, graph* d, int n)
   fputc('\n', fi);
 }
 
-#define NONVISITED 0
-#define VISITED    1
-#define INPROGRESS 2
 bool has_cycle_mask(graph* g, int n, set mask)
+/* check is the sub(di)graph induced by mask has a cycle or not */
 {
   int u,v,w;
   // fprintf(stderr, "is_acyclic? n = %d; mask = %x \n", n, mask);
 
-  bool state[n];
-  /* clear states */
-  for (u=0; u<n; ++u)
-  {
-    state[u] = NONVISITED;
-    // fprintf(stderr, "IN(%d, mask)? %d \n", u, IN(u, mask));
-  }
+  set visited = EMPTY;
+  set in_progress = EMPTY;
 
-  int next_child[n];
+  char next_child[n];
   for (u=0; u<n; ++u)
   {
     next_child[u] = 0;
@@ -215,7 +207,7 @@ bool has_cycle_mask(graph* g, int n, set mask)
   for (u=0; u<n; ++u)
   {
     // fprintf(stderr, "IN(%d, %x)? %d \n", u, mask, IN(u, mask));
-    if ((state[u]!=NONVISITED) || (!IN(u, mask)))
+    if ((IN(u, visited)) || (IN(u, in_progress)) || (!IN(u, mask)))
     {
       continue;
     }
@@ -223,13 +215,13 @@ bool has_cycle_mask(graph* g, int n, set mask)
     /* we push u */
     ++top;
     stack[top] = u;
-    state[u] = INPROGRESS;
+    in_progress |= SINGLETON(u);
     // fprintf(stderr, "--> we push %d \n", u);
 
     while (top>=0) /* while the stack is not empty */
     {
       v = stack[top]; /* we process the vertex on the top */
-      state[v] = INPROGRESS;
+      in_progress |= SINGLETON(v);
       // fprintf(stderr, "we read %d \n", v);
  
       process_finished = TRUE;
@@ -240,17 +232,16 @@ bool has_cycle_mask(graph* g, int n, set mask)
         ++next_child[v];
         if (IN(w, gv) && IN(w, mask)) /* if w is a successor of v in mask */
         {
-          // fprintf(stderr, "-------------> TRUE, w= %d, state[w]=%d \n", w, state[w]);
-          if (state[w] == INPROGRESS)
+          if (IN(w, in_progress)) 
           { /* we have any cycle */
             // fprintf(stderr, "cycle found at %d \n", w);
             return TRUE;
           }
-          else if (state[w] == VISITED)
+          else if (IN(w, visited))
           { /* we don't need to go further */
             ;
           }
-          else if (state[w] == NONVISITED)
+          else 
           { /* we push w on the stack */
             ++top;
             stack[top] = w;
@@ -264,7 +255,8 @@ bool has_cycle_mask(graph* g, int n, set mask)
       {
         --top;
         // fprintf(stderr, "we read %d \n", v);
-        state[v] = VISITED;
+        in_progress &= ~(SINGLETON(v));
+        visited |= SINGLETON(v);
       }
     }
   }
@@ -272,6 +264,7 @@ bool has_cycle_mask(graph* g, int n, set mask)
 }
 
 bool has_cycle(graph* g, int n)
+/* check if d has a cycle */
 {
   return has_cycle_mask(g, n, ALL);
 }
@@ -279,7 +272,9 @@ bool has_cycle(graph* g, int n)
 
 bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acyclic,
                  int next_vertex)
- /* next_vertex: next vertex to add to acyclic */
+/* check if, in the sub(di)graph induced by current_cubgraph, the acyclic subgraph
+ * induced by current_acyclic can be extended with only vertices v >= next_vertex
+ * in any k dicoloration */
 {
   // fprintf(stderr, "n = %d, next_vertex = %d, k = %d,subg = %x, acyclic = %x \n", n,
   //        next_vertex, k,
@@ -318,7 +313,7 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
 }
 
 
-bool is_kcol(graph* d, int n, int k)
+inline bool is_kcol(graph* d, int n, int k)
 {
   return is_kcol_aux(d, n, k, ALL, SINGLETON(0), 1); 
 }
