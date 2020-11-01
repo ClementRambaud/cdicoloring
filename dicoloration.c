@@ -1,16 +1,16 @@
 #include "dicoloration.h" 
 
-void add_edge(graph* g, int u, int v)
+inline void add_edge(graph* g, int u, int v)
 {
   ADJ_SET(g,u) = ADD(v, ADJ_SET(g,u));
 }
 
-void remove_edge(graph* g, int u, int v)
+inline void remove_edge(graph* g, int u, int v)
 {
   ADJ_SET(g,u) = DEL(v, ADJ_SET(g,u));
 }
 
-void empty_graph(graph* g, int n)
+inline void empty_graph(graph* g, int n)
 {
   int i;
   for (i=0; i<n; ++i)
@@ -19,7 +19,7 @@ void empty_graph(graph* g, int n)
   }
 }
 
-void copy_graph(graph* g, graph* g2, int n)
+inline void copy_graph(graph* g, graph* g2, int n)
 {
   int v;
   for(v=0; v<n; ++v)
@@ -84,44 +84,40 @@ void read_digraph6(FILE *fi, graph* d, int *n)
   int nb;
   int index;
   int matij;
-  char line[MAXN*MAXN]; /* it is indeed smaller  <------------ */
 
   empty_graph(d, MAXN); /* clear the graph */
 
   c = fgetc(fi);
-  if (c!='&') /* if it is not a directed graph */
+  if (c != '&') /* if it is not a directed graph */
   {
     return;
   }
 
-  *n = fgetc(fi) - 63;
-  /* we read the line */
-  c = fgetc(fi);
-  int counter=0;
-  while (c!='\n')
-  {
-    line[counter] = c;
-    c = fgetc(fi);
-    ++counter;
-  }
+  *n = fgetc(fi) - 63; /* we get the  numbe rof vertices */
 
-  for (j=0; j<*n; ++j)
+  /* we read the matrix */
+  nb = 0;
+  for (i=0; i<*n; ++i)
   {
-    for (i=0; i<*n; ++i)
+    for (j=0; j<*n; ++j)
     {
-      nb = (*n) * j + i;
+      // nb = (*n) * i + j;
       index = nb % 6;
-      c = line[nb/6] - 63;
+      // c = line[nb / 6] - 63;
+      if (index == 0) /* we need another character */
+      {
+        c = fgetc(fi) - 63;
+      }
       matij = (c >> (5-index)) & 1;
-      if (matij==1)
+      if (matij)
       {
         // fprintf(stderr, "is_adj %d %d \n", i ,j);
-        add_edge(d, j, i);
+        add_edge(d, i, j);
       }
+      ++nb;
     }
   }
 }
-
 
 void print_graph(FILE* fi, graph* g, int n)
 {
@@ -181,7 +177,7 @@ void write_digraph6(FILE* fi, graph* d, int n)
   fputc('&', fi); /* directed */
   fputc(63 + n, fi); /* nb of vertices */
   for (i=0; i<taille; ++i)
-  {
+  { /* then we print the adj matrix */
     fputc(result[i] + 63, fi);
   }
   fputc('\n', fi);
