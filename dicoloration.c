@@ -74,6 +74,11 @@ int deg_in_min(graph* g, int n)
   return res;
 }
 
+inline int deg_min(graph* g, int n)
+{
+  return deg_out_min(g, n);
+}
+
 void read_digraph6(FILE *fi, graph* d, int *n)
 /* fi: file;
  * n: the number of vertices will be written here;
@@ -118,6 +123,49 @@ void read_digraph6(FILE *fi, graph* d, int *n)
   }
 }
 
+void read_graph6(FILE *fi, graph* g, int *n)
+/* fi: file;
+ * n: the number of vertices will be written here;
+ */
+{
+  char c=0; /* current character */
+  int i,j; /* the current pair of vertices */
+  int nb;
+  int index;
+  int matij;
+
+  empty_graph(g, MAXN); /* clear the graph */
+
+  *n = fgetc(fi) - 63; /* we get the  numbe rof vertices */
+
+  /* we read the matrix */
+  nb = 0;
+  for (i=0; i<*n; ++i)
+  {
+    for (j=0; j<i; ++j)
+    {
+      // nb = (*n) * i + j;
+      index = nb % 6;
+      if (index == 0) /* we need another character */
+      {
+        c = fgetc(fi) - 63;
+      }
+      matij = (c >> (5-index)) & 1;
+      if (matij)
+      {
+        // fprintf(stderr, "is_adj %d %d \n", i ,j);
+        add_edge(g, i, j);
+        add_edge(g, j, i);
+      }
+      ++nb;
+    }
+  }
+  if (fgetc(fi) != '\n' && fgetc(fi) != EOF)
+  {
+    fprintf(stderr, "ATTENTION, mauvaise lecture! \n");
+  }
+}
+
 void print_graph(FILE* fi, graph* g, int n)
 {
   int i,j;
@@ -151,6 +199,7 @@ void write_digraph6(FILE* fi, graph* d, int n)
     result[i] = 0;
   }
 
+  nb = 0;
   for (i=0; i<n; ++i)
   {
     for (j=0; j<n; ++j)
@@ -164,13 +213,13 @@ void write_digraph6(FILE* fi, graph* d, int n)
       {
         v = 0;
       }
-      nb = i * n + j;
       index_char = nb / 6;
       index = nb % 6;
       // fprintf(stderr, "index = %d, index_char = %d, (v << (5-index)) = %d \n",
       //         index, index_char, (v << (5 - index)));
       result[index_char] |= (v << (5 - index));
       // fprintf(stderr, "%x\n", result[index_char]);
+      ++nb;
     }
   }
   fputc('&', fi); /* directed */
@@ -181,8 +230,49 @@ void write_digraph6(FILE* fi, graph* d, int n)
   }
   fputc('\n', fi);
 }
+void write_graph6(FILE* fi, graph* d, int n)
+{
+  int taille = CEILING(n*(n-1), 12); /* nb of needed char */
+  // fprintf(stderr, "taille = %d \n", taille);
+  char result[CEILING(MAXN*MAXN, 6)];
+  int i,j;
+  int v;
+  int nb, index_char, index;
 
-bool has_cycle_mask(graph* g, int n, set mask)
+  /* clear the result */
+  for (i=0; i<taille; ++i)
+  {
+    result[i] = 0;
+  }
+
+  nb = 0;
+  for (i=0; i<n; ++i)
+  {
+    for (j=0; j<i; ++j)
+    {
+      if (IS_ADJ(d, i, j))
+      {
+        v = 1;
+      }
+      else
+      {
+        v = 0;
+      }
+      index_char = nb / 6;
+      index = nb % 6;
+      result[index_char] |= (v << (5 - index));
+      ++nb;
+    }
+  }
+  fputc(63 + n, fi); /* nb of vertices */
+  for (i=0; i<taille; ++i)
+  { /* then we print the adj matrix */
+    fputc(result[i] + 63, fi);
+  }
+  fputc('\n', fi);
+}
+
+bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
 /* check is the sub(di)graph induced by mask has a cycle or not */
 {
   int u,v,w;
@@ -192,10 +282,13 @@ bool has_cycle_mask(graph* g, int n, set mask)
   set in_progress = EMPTY;
 
   char next_child[n];
+  char parent[n];
   for (u=0; u<n; ++u)
   {
     next_child[u] = 0;
+    parent[u] = -1;
   }
+
  
   int stack[n];
   int top = -1; /* top of the stack */
@@ -222,7 +315,7 @@ bool has_cycle_mask(graph* g, int n, set mask)
     {
       v = stack[top]; /* we process the vertex on the top */
       in_progress |= SINGLETON(v);
-      // fprintf(stderr, "we read %d \n", v);
+      // fprintf(stderr, "--> we read %d \n", v);
  
       process_finished = TRUE;
       gv = ADJ_SET(g, v);
@@ -230,10 +323,12 @@ bool has_cycle_mask(graph* g, int n, set mask)
       {
         // fprintf(stderr, "we try (v, w) = (%d , %d) \n", v, w);
         ++next_child[v];
-        if (IN(w, gv) && IN(w, mask)) /* if w is a successor of v in mask */
+        if (IN(w, gv) && IN(w, mask) && (oriented || parent[v] != w))
+          /* if w is a successor of v in mask */
         {
           if (IN(w, in_progress)) 
           { /* we have any cycle */
+            // fprintf(stderr, "v=%d, w=%d, parent[v]=%d \n", v, w, parent[v]);
             // fprintf(stderr, "cycle found at %d \n", w);
             return TRUE;
           }
@@ -245,6 +340,7 @@ bool has_cycle_mask(graph* g, int n, set mask)
           { /* we push w on the stack */
             ++top;
             stack[top] = w;
+            parent[w] = v;
             process_finished = FALSE;
             // fprintf(stderr, "we push %d \n", w);
             break;
@@ -263,22 +359,22 @@ bool has_cycle_mask(graph* g, int n, set mask)
   return FALSE;
 }
 
-bool has_cycle(graph* g, int n)
+bool has_cycle(graph* g, int n, bool oriented)
 /* check if d has a cycle */
 {
-  return has_cycle_mask(g, n, ALL);
+  return has_cycle_mask(g, n, ALL, oriented);
 }
 
 
 bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acyclic,
-                 int next_vertex)
+                 int next_vertex, bool oriented)
 /* check if, in the sub(di)graph induced by current_cubgraph, the acyclic subgraph
  * induced by current_acyclic can be extended with only vertices v >= next_vertex
  * in any k dicoloration */
 {
-  // fprintf(stderr, "n = %d, next_vertex = %d, k = %d,subg = %x, acyclic = %x \n", n,
-  //        next_vertex, k,
-  //        current_subgraph, current_acyclic);
+  fprintf(stderr, "n = %d, next_vertex = %d, k = %d,subg = %x, acyclic = %x \n", n,
+         next_vertex, k,
+         current_subgraph, current_acyclic);
   if (k==0)
   {
     return (n==0);
@@ -286,7 +382,7 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
 
   if (k==1)
   {
-    return !has_cycle_mask(d, n, current_subgraph);
+    return !has_cycle_mask(d, n, current_subgraph, oriented);
   }
   
   if (next_vertex >= n)
@@ -296,26 +392,32 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
     /* we fix the next vertex in the next color class
      * we compute the first non colored vertex */
     int t = __builtin_ctz(~current_subgraph);
-    return is_kcol_aux(d, n, k - 1, current_subgraph, SINGLETON(t), t+1);
+    return is_kcol_aux(d, n, k - 1, current_subgraph, SINGLETON(t), t+1, oriented);
   }
 
   /* if we can not add next_vertex */
   if (!IN(next_vertex, current_subgraph) ||
-      has_cycle_mask(d, n, ADD(next_vertex,current_acyclic)))
+      has_cycle_mask(d, n, ADD(next_vertex,current_acyclic),oriented))
   {
-    return is_kcol_aux(d, n, k, current_subgraph, current_acyclic, next_vertex + 1);
+    return is_kcol_aux(d, n, k, current_subgraph, current_acyclic, next_vertex + 1,
+                       oriented);
   }
 
   /* if we can add the vertex */
   return (is_kcol_aux(d, n, k, current_subgraph, 
-                      ADD(next_vertex, current_acyclic), next_vertex + 1) ||
-          is_kcol_aux(d, n, k, current_subgraph, current_acyclic, next_vertex + 1));
+                      ADD(next_vertex, current_acyclic), next_vertex + 1, oriented) ||
+          is_kcol_aux(d, n, k, current_subgraph, current_acyclic, next_vertex + 1,
+                      oriented));
 }
 
 
 inline bool is_kcol(graph* d, int n, int k)
 {
-  return is_kcol_aux(d, n, k, ALL, SINGLETON(0), 1); 
+  return is_kcol_aux(d, n, k, ALL, SINGLETON(0), 1, TRUE); 
+}
+inline bool is_karb(graph* g, int n, int k)
+{
+  return is_kcol_aux(g, n, k, ALL, SINGLETON(0), 1, FALSE); 
 }
 
 inline bool is_kvertex_critical(graph* d, int n, int k)
@@ -327,7 +429,7 @@ inline bool is_kvertex_critical(graph* d, int n, int k)
   int v;
   for (v=0; v<n; ++v)
   {
-    if (!is_kcol_aux(d, n, k-1, DIFF(ALL, SINGLETON(v)), EMPTY, 0))
+    if (!is_kcol_aux(d, n, k-1, DIFF(ALL, SINGLETON(v)), EMPTY, 0, TRUE))
     {
       return FALSE;
     }

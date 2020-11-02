@@ -29,30 +29,35 @@ void add_edge(graph* g, int u, int v);
 void remove_edge(graph* g, int u, int v);
 
 void empty_graph(graph* g, int n);
+void copy_graph(graph* g, graph* g2, int n);
 
-int deg_out(graph* g, int n, int v);
+int deg_out(graph* d, int n, int v);
 
-int deg_in(graph* g, int n, int v);
+int deg_in(graph* d, int n, int v);
 
 #define MIN(X,Y) (((X) < (Y)) ? (X) : (Y))
-int deg_out_min(graph* g, int n);
-int deg_in_min(graph* g, int n);
+int deg_out_min(graph* d, int n);
+int deg_in_min(graph* d, int n);
+int deg_min(graph* g, int n);
 
 void read_digraph6(FILE* fi, graph* d, int* n);
+void read_graph6(FILE* fi, graph* g, int* n);
 void print_graph(FILE* fi, graph* g, int n);
 void write_digraph6(FILE* fi, graph* d, int n);
+void write_graph6(FILE* fi, graph* g, int n);
 
 #define NONVISITED 0
 #define VISITED    1
 #define INPROGRESS 2
 
-bool has_cycle_mask(graph* g, int n, set mask);
-bool has_cycle(graph* g, int n);
+bool has_cycle_mask(graph* g, int n, set mask, bool oriented);
+bool has_cycle(graph* g, int n, bool oriented);
 
 bool is_kcol_aux(graph* d, int n, int k, set current_subgraph,
-                 set current_acyclic, int next_vertex);
+                 set current_acyclic, int next_vertex, bool oriented);
 
-bool is_kcol(graph* g, int n, int k);
+bool is_kcol(graph* d, int n, int k);
+bool is_karb(graph* g, int n, int k);
 
 bool is_kvertex_critical(graph* d, int n, int k);
 bool is_kcritical(graph* d, int n, int k);
