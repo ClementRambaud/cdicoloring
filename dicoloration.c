@@ -293,8 +293,8 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
   {
     // fprintf(stderr, "final acyclic = %x \n", current_acyclic);
     current_subgraph = DIFF(current_subgraph, current_acyclic);
-    // we fix the next vertex in the next color class
-    // we compute the first non colored vertex
+    /* we fix the next vertex in the next color class
+     * we compute the first non colored vertex */
     int t = __builtin_ctz(~current_subgraph);
     return is_kcol_aux(d, n, k - 1, current_subgraph, SINGLETON(t), t+1);
   }
@@ -318,7 +318,7 @@ inline bool is_kcol(graph* d, int n, int k)
   return is_kcol_aux(d, n, k, ALL, SINGLETON(0), 1); 
 }
 
-bool is_kvertex_critical(graph* d, int n, int k)
+inline bool is_kvertex_critical(graph* d, int n, int k)
 {
   if (is_kcol(d, n, k-1) || !is_kcol(d, n, k))
   {
@@ -336,7 +336,7 @@ bool is_kvertex_critical(graph* d, int n, int k)
 }
 
 
-bool is_kcritical(graph* d, int n, int k)
+inline bool is_kcritical(graph* d, int n, int k)
 {
   if (!is_kvertex_critical(d, n ,k))
   {
