@@ -286,7 +286,7 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
   for (u=0; u<n; ++u)
   {
     next_child[u] = 0;
-    parent[u] = -1;
+    parent[u] = 255;
   }
 
  
@@ -372,9 +372,9 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
  * induced by current_acyclic can be extended with only vertices v >= next_vertex
  * in any k dicoloration */
 {
-  fprintf(stderr, "n = %d, next_vertex = %d, k = %d,subg = %x, acyclic = %x \n", n,
-         next_vertex, k,
-         current_subgraph, current_acyclic);
+  // fprintf(stderr, "n = %d, next_vertex = %d, k = %d,subg = %x, acyclic = %x \n", n,
+  //        next_vertex, k,
+  //        current_subgraph, current_acyclic);
   if (k==0)
   {
     return (n==0);
