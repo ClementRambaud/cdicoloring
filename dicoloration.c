@@ -287,11 +287,9 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
   set visited = EMPTY;
   set in_progress = EMPTY;
 
-  char next_child[n];
   char parent[n];
   for (u=0; u<n; ++u)
   {
-    next_child[u] = 0;
     parent[u] = 255;
   }
 
@@ -324,33 +322,30 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
       // fprintf(stderr, "--> we read %d \n", v);
  
       process_finished = TRUE;
-      gv = ADJ_SET(g, v);
-      for (w=next_child[v]; w<n; ++w)
+      gv = ADJ_SET(g, v) & mask;
+      if (!oriented) gv &=(~SINGLETON(parent[v]));
+      while (gv!=EMPTY)
       {
-        // fprintf(stderr, "we try (v, w) = (%d , %d) \n", v, w);
-        ++next_child[v];
-        if (IN(w, gv) && IN(w, mask) && (oriented || parent[v] != w))
-          /* if w is a successor of v in mask */
-        {
-          if (IN(w, in_progress)) 
-          { /* we have any cycle */
-            // fprintf(stderr, "v=%d, w=%d, parent[v]=%d \n", v, w, parent[v]);
-            // fprintf(stderr, "cycle found at %d \n", w);
-            return TRUE;
-          }
-          else if (IN(w, visited))
-          { /* we don't need to go further */
-            ;
-          }
-          else 
-          { /* we push w on the stack */
-            ++top;
-            stack[top] = w;
-            parent[w] = v;
-            process_finished = FALSE;
-            // fprintf(stderr, "we push %d \n", w);
-            break;
-          }
+        w = MIN_SET(gv);
+        gv &= ~SINGLETON(w);
+        if (IN(w, in_progress)) 
+        { /* we have any cycle */
+          // fprintf(stderr, "v=%d, w=%d, parent[v]=%d \n", v, w, parent[v]);
+          // fprintf(stderr, "cycle found at %d \n", w);
+          return TRUE;
+        }
+        else if (IN(w, visited))
+        { /* we don't need to go further */
+          ;
+        }
+        else 
+        { /* we push w on the stack */
+          ++top;
+          stack[top] = w;
+          parent[w] = v;
+          process_finished = FALSE;
+          // fprintf(stderr, "we push %d \n", w);
+          break;
         }
       }
       if (process_finished)
