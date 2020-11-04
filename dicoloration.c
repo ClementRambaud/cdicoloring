@@ -287,11 +287,9 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
   set visited = EMPTY;
   set in_progress = EMPTY;
 
-  char next_child[n];
   char parent[n];
   for (u=0; u<n; ++u)
   {
-    next_child[u] = 0;
     parent[u] = 255;
   }
 
@@ -311,8 +309,6 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
       continue;
     }
 
-    /* we push u */
-    ++top;
     stack[top] = u;
     in_progress |= SINGLETON(u);
     // fprintf(stderr, "--> we push %d \n", u);
@@ -324,12 +320,12 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
       // fprintf(stderr, "--> we read %d \n", v);
  
       process_finished = TRUE;
-      gv = ADJ_SET(g, v);
-      for (w=next_child[v]; w<n; ++w)
+      gv = ADJ_SET(g, v) & mask;
+      while (gv != EMPTY)
       {
-        // fprintf(stderr, "we try (v, w) = (%d , %d) \n", v, w);
-        ++next_child[v];
-        if (IN(w, gv) && IN(w, mask) && (oriented || parent[v] != w))
+        w = MIN_SET(gv);
+        gv &= ~SINGLETON(w);
+        if (IN(w, mask) && (oriented || parent[v] != w))
           /* if w is a successor of v in mask */
         {
           if (IN(w, in_progress)) 
