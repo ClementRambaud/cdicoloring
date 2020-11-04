@@ -121,6 +121,10 @@ void read_digraph6(FILE *fi, graph* d, int *n)
       ++nb;
     }
   }
+  if (fgetc(fi) != '\n' && fgetc(fi) != EOF)
+  {
+    fprintf(stderr, "ATTENTION, mauvaise lecture! \n");
+  }
 }
 
 void read_graph6(FILE *fi, graph* g, int *n)
@@ -271,6 +275,8 @@ void write_graph6(FILE* fi, graph* d, int n)
   }
   fputc('\n', fi);
 }
+
+
 
 bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
 /* check is the sub(di)graph induced by mask has a cycle or not */
