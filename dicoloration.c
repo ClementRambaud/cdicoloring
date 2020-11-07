@@ -299,8 +299,6 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
 
   set gv; /* current list of successors */
  
-  bool process_finished;
-
   for (u=0; u<n; ++u)
   {
     // fprintf(stderr, "IN(%d, %x)? %d \n", u, mask, IN(u, mask));
@@ -321,34 +319,27 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
       in_progress |= SINGLETON(v);
       // fprintf(stderr, "--> we read %d \n", v);
  
-      process_finished = TRUE;
       gv = ADJ_SET(g, v) & mask;
+
+      /* if not oriented, we prevent cycle of lentgh 2 */
       if (!oriented) gv &=(~SINGLETON(parent[v]));
-      while (gv!=EMPTY)
+
+      /* if there is a cycle */
+      if ((gv & in_progress) != EMPTY) return TRUE;
+
+      gv &= ~in_progress;
+      gv &= ~visited;
+      if (gv!=EMPTY)
       {
         w = MIN_SET(gv);
         gv &= ~SINGLETON(w);
-        if (IN(w, in_progress)) 
-        { /* we have any cycle */
-          // fprintf(stderr, "v=%d, w=%d, parent[v]=%d \n", v, w, parent[v]);
-          // fprintf(stderr, "cycle found at %d \n", w);
-          return TRUE;
-        }
-        else if (IN(w, visited))
-        { /* we don't need to go further */
-          ;
-        }
-        else 
-        { /* we push w on the stack */
-          ++top;
-          stack[top] = w;
-          parent[w] = v;
-          process_finished = FALSE;
-          // fprintf(stderr, "we push %d \n", w);
-          break;
-        }
+        /* we push w on the stack */
+        ++top;
+        stack[top] = w;
+        parent[w] = v;
+        // fprintf(stderr, "we push %d \n", w);
       }
-      if (process_finished)
+      else 
       {
         --top;
         // fprintf(stderr, "we read %d \n", v);
