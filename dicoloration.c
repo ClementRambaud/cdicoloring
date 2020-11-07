@@ -278,7 +278,7 @@ void write_graph6(FILE* fi, graph* d, int n)
 
 
 
-bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
+bool has_cycle_mask(graph* g, int n, set mask, bool directed)
 /* check is the sub(di)graph induced by mask has a cycle or not */
 {
   int u,v,w;
@@ -288,7 +288,7 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
   set in_progress = EMPTY;
 
   char parent[n];
-  if (!oriented)
+  if (!directed)
   {
     for (u=0; u<n; ++u)
     {
@@ -301,7 +301,7 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
 
   set gv; /* current list of successors */
  
-  for (u=0; u<n; u=MIN_SET(~visited & ~in_progress & mask))
+  for (u=MIN_SET(mask); u<n; u=MIN_SET(~visited & ~in_progress & mask))
   {
     // fprintf(stderr, "IN(%d, %x)? %d \n", u, mask, IN(u, mask));
     /* we push u */
@@ -318,8 +318,8 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
  
       gv = ADJ_SET(g, v) & mask;
 
-      /* if not oriented, we prevent cycle of lentgh 2 */
-      if (!oriented) gv &=(~SINGLETON(parent[v]));
+      /* if not directed, we prevent cycle of lentgh 2 */
+      if (!directed) gv &=(~SINGLETON(parent[v]));
 
       /* if there is a cycle */
       if ((gv & in_progress) != EMPTY) return TRUE;
@@ -346,15 +346,15 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
   return FALSE;
 }
 
-bool has_cycle(graph* g, int n, bool oriented)
+bool has_cycle(graph* g, int n, bool directed)
 /* check if d has a cycle */
 {
-  return has_cycle_mask(g, n, ALL, oriented);
+  return has_cycle_mask(g, n, ALL, directed);
 }
 
 
 bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acyclic,
-                 int next_vertex, bool oriented)
+                 int next_vertex, bool directed)
 /* check if, in the sub(di)graph induced by current_cubgraph, the acyclic subgraph
  * induced by current_acyclic can be extended with only vertices v >= next_vertex
  * in any k dicoloration */
@@ -369,7 +369,7 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
 
   if (k==1)
   {
-    return !has_cycle_mask(d, n, current_subgraph, oriented);
+    return !has_cycle_mask(d, n, current_subgraph, directed);
   }
   
   if (next_vertex >= n)
@@ -378,23 +378,23 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
     current_subgraph = DIFF(current_subgraph, current_acyclic);
     /* we fix the next vertex in the next color class
      * we compute the first non colored vertex */
-    int t = __builtin_ctz(~current_subgraph);
-    return is_kcol_aux(d, n, k - 1, current_subgraph, SINGLETON(t), t+1, oriented);
+    int t = __builtin_ctz(current_subgraph);
+    return is_kcol_aux(d, n, k - 1, current_subgraph, SINGLETON(t), t+1, directed);
   }
 
   /* if we can not add next_vertex */
   if (!IN(next_vertex, current_subgraph) ||
-      has_cycle_mask(d, n, ADD(next_vertex,current_acyclic),oriented))
+      has_cycle_mask(d, n, ADD(next_vertex,current_acyclic),directed))
   {
     return is_kcol_aux(d, n, k, current_subgraph, current_acyclic, next_vertex + 1,
-                       oriented);
+                       directed);
   }
 
   /* if we can add the vertex */
   return (is_kcol_aux(d, n, k, current_subgraph, 
-                      ADD(next_vertex, current_acyclic), next_vertex + 1, oriented) ||
+                      ADD(next_vertex, current_acyclic), next_vertex + 1, directed) ||
           is_kcol_aux(d, n, k, current_subgraph, current_acyclic, next_vertex + 1,
-                      oriented));
+                      directed));
 }
 
 
