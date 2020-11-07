@@ -299,14 +299,9 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
 
   set gv; /* current list of successors */
  
-  for (u=0; u<n; ++u)
+  for (u=0; u<n; u=MIN_SET(~visited & ~in_progress & mask))
   {
     // fprintf(stderr, "IN(%d, %x)? %d \n", u, mask, IN(u, mask));
-    if ((IN(u, visited)) || (IN(u, in_progress)) || (!IN(u, mask)))
-    {
-      continue;
-    }
-
     /* we push u */
     ++top;
     stack[top] = u;
@@ -327,12 +322,10 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
       /* if there is a cycle */
       if ((gv & in_progress) != EMPTY) return TRUE;
 
-      gv &= ~in_progress;
       gv &= ~visited;
-      if (gv!=EMPTY)
+      if (gv != EMPTY)
       {
         w = MIN_SET(gv);
-        gv &= ~SINGLETON(w);
         /* we push w on the stack */
         ++top;
         stack[top] = w;
