@@ -288,11 +288,13 @@ bool has_cycle_mask(graph* g, int n, set mask, bool oriented)
   set in_progress = EMPTY;
 
   char parent[n];
-  for (u=0; u<n; ++u)
+  if (!oriented)
   {
-    parent[u] = 255;
+    for (u=0; u<n; ++u)
+    {
+      parent[u] = 255;
+    }
   }
-
  
   int stack[n];
   int top = -1; /* top of the stack */
