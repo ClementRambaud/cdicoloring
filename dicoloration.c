@@ -28,16 +28,9 @@ inline void copy_graph(graph* g, graph* g2, int n)
   }
 }
 
-int deg_out(graph* g, int n, int v)
+inline int deg_out(graph* g, int n, int v)
 {
-  set gv = ADJ_SET(g, v);
-  int res = 0;
-  int w;
-  for (w=0; w<n; ++w)
-  {
-    if (IN(w, gv)) ++res;
-  }
-  return res;
+  return CARD(ADJ_SET(g, v));
 }
 
 int deg_in(graph* g, int n, int v)
@@ -301,7 +294,7 @@ bool has_cycle_mask(graph* g, int n, set mask, bool directed)
 
   set gv; /* current list of successors */
  
-  for (u=MIN_SET(mask); u<n; u=MIN_SET(~visited & ~in_progress & mask))
+  while ((u=MIN_SET(~visited & ~in_progress & mask))<n)
   {
     // fprintf(stderr, "IN(%d, %x)? %d \n", u, mask, IN(u, mask));
     /* we push u */
@@ -436,19 +429,19 @@ inline bool is_kcritical(graph* d, int n, int k)
   copy_graph(d, d2, n);
 
   int v, w;
+  set gv;
   for (v=0; v<n; ++v)
   {
-    for (w=0; w<n; ++w)
+    gv = ADJ_SET(d,v);
+    while ((w=MIN_SET(gv))<n)
     {
-      if (IS_ADJ(d, v, w))
+      gv &= ~SINGLETON(w);
+      remove_edge(d2, v, w);
+      if (!is_kcol(d2, n, k-1))
       {
-        remove_edge(d2, v, w);
-        if (!is_kcol(d2, n, k-1))
-        {
-          return FALSE;
-        }
-        add_edge(d2, v, w);
+        return FALSE;
       }
+      add_edge(d2, v, w);
     }
   }
   return TRUE;
