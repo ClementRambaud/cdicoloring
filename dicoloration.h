@@ -41,6 +41,8 @@ int deg_out_min(graph* d, int n);
 int deg_in_min(graph* d, int n);
 int deg_min(graph* g, int n);
 
+int number_of_arcs(graph* d, int n);
+
 void read_digraph6(FILE* fi, graph* d, int* n);
 void read_graph6(FILE* fi, graph* g, int* n);
 void print_graph(FILE* fi, graph* g, int n);

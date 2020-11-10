@@ -72,6 +72,17 @@ inline int deg_min(graph* g, int n)
   return deg_out_min(g, n);
 }
 
+inline int number_of_arcs(graph* d, int n)
+{
+  int res = 0;
+  int v;
+  for (v=0; v<n; ++v)
+  {
+    res += CARD(ADJ_SET(d, v));
+  }
+  return res;
+}
+
 void read_digraph6(FILE *fi, graph* d, int *n)
 /* fi: file;
  * n: the number of vertices will be written here;

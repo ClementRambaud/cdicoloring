@@ -3,7 +3,7 @@
 int main(int argc, char *argv[])
 {
     char k = argv[1][0] - 48;
-    graph d[MAXN * MAXN];
+    graph d[MAXN];
     int n;
     while (1)
     {
