@@ -28,7 +28,7 @@ The bash script
 cat file.g6 | ./is_not_karb.native 3 | ./directg_deg_min_3 -o \
             | ./is_not_kcol.native 3 > result.d6
 ```
-write in the file `result.d6` all the orientations of a graph in `file.g6` that are 
+write in the file `result.d6` all the orientations of a graph in `file.g6` 
 of minimum in and out degree at least 3 and not 3 dicolourable.
 
 ## Interface for dicolouration ##
