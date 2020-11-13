@@ -37,7 +37,7 @@ The integer n allways represents the number of vertices.
 ### Data structures ###
 Graphs and digraphs are represented by adjacency matrix.
 - `bool`: defined to be equal to `int`,
-- `set`: representation of a set by any `int`, somme macro are given to manipulates
+- `set`: representation of a set by any `int`, some macro are given to manipulates
          these objects (`UNION`, `MIN_SET`, `SINGLETON`,...),
 - `graph`: same as `set`, typical usage: `graph g[20];`,
 
