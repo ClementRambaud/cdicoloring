@@ -11,12 +11,14 @@ int main(int argc, char *argv[])
     i = 0;
     int max_nb_a = 0;
     int nb_a;
+    int nb = 0;
     while (1)
     {
       read_digraph6(stdin, d, &n);
       if (feof(stdin)) break;
       // print_graph(stderr, d, n);
       nb_a = number_of_arcs(d, n);
+      ++nb;
       ++stat[nb_a];
       if (nb_a>max_nb_a) max_nb_a=nb_a;
     }
