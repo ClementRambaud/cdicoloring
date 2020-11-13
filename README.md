@@ -1,28 +1,40 @@
-Small C library to deals with graph and digraph coloring.
+Small C library to deals with graph and digraph colouring.
 
-## Dependancy ##
-We use `make` and `gcc`.
-The programs `nauty`, `plantri` and `surftri` are very useful but not necessary.
+## Complilation ##
+Run `make`: it will download `nauty` and compile the needed parts of it.
 
 ## Usage ##
 - `is_not_karb.native k`: reads graph (graph6 format) from stdin and outputs
    only those which can not be partitionnate in k induced forests.
 - `is_not_kcol.native k`: reads digraphs (digraphs6 format) from stdin
-  and outputs only those which are not k-dicolorable.
+  and outputs only those which are not k-dicolourable.
 - `is_kcritical.native k`: reads digraphs (digraph6 format) from stdin and 
   outputs only those which are k-dicritical.
 
-### Example: ###
+### Modified `nauty-directg`: ###
+
+- `directg_min_deg_2 -o`: read graph and outputs its orientation of minimum in and out
+degree at least 2
+- `directg_min_deg_3 -o`: read graph and outputs its orientation of minimum in and out
+degree at least 3
+
+Some scripts:
+- `./find_3critical.sh n` write to stdout the list of 3-dicritical oriented graphs of
+order n,
+
+### Examples: ###
 The bash script
 ```
-nauty/geng -C -d4 8 | ./directg_deg_min_2.native -o | ./is_kcritical.native 3
+cat file.g6 | ./is_not_karb.native 3 | ./directg_deg_min_3 -o \
+            | ./is_not_kcol.native 3 > result.d6
 ```
-generates the list of 3-critical oriented graphs of order 8.
+write in the file `result.d6` all the orientations of a graph in `file.g6` that are 
+of minimum in and out degree at least 3 and not 3 dicolourable.
 
-
-## Interface for dicoloration ##
+## Interface for dicolouration ##
 The integer n allways represents the number of vertices.
-### data structures ###
+
+### Data structures ###
 Graphs and digraphs are represented by adjacency matrix.
 - `bool`: defined to be equal to `int`,
 - `set`: representation of a set by any `int`, somme macro are given to manipulates
