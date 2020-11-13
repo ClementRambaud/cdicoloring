@@ -15,11 +15,12 @@ The programs `nauty`, `plantri` and `surftri` are very useful but not necessary.
 ### Example: ###
 The bash script
 ```
-geng -C -d4 8 | directg -o | ./is_kcritical.native 3
+nauty/geng -C -d4 8 | ./directg_deg_min_2.native -o | ./is_kcritical.native 3
 ```
 generates the list of 3-critical oriented graphs of order 8.
 
-## Interface ##
+
+## Interface for dicoloration ##
 The integer n allways represents the number of vertices.
 ### data structures ###
 Graphs and digraphs are represented by adjacency matrix.

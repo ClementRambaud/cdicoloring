@@ -1,8 +1,15 @@
-all: dicoloration directg
+all: dicoloration my_directg directg geng
 
-directg: nauty/nauty.a directg_deg_min_2.c directg_deg_min_3.c
+my_directg: nauty/nauty.a directg_deg_min_2.c directg_deg_min_3.c
 	gcc -march=native -O4 -o directg_deg_min_2.native directg_deg_min_2.c nauty/nauty.a
 	gcc -march=native -O4 -o directg_deg_min_3.native directg_deg_min_3.c nauty/nauty.a
+
+directg:
+	make -C nauty/ directg
+
+geng:
+	make -C nauty/ geng
+
 
 nauty/nauty.a:
 	wget http://pallini.di.uniroma1.it/nauty27r1.tar.gz
