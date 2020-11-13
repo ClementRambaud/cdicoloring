@@ -7,5 +7,5 @@ int degprune(int *indeg, int *outdeg, int v, int n)
 
 #define DEGPRUNE degprune
 
-#include "nauty/directg.c"
+#include "../nauty/directg.c"
 
