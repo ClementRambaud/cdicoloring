@@ -19,7 +19,7 @@ nauty/nauty.a:
 	mv nauty27r1 nauty
 	make -C nauty/ nauty.a
 
-dicoloration_all: is_kcritical.native is_not_kcol.native is_not_karb.native density_statistics.native
+dicoloration_all: is_kcritical.native is_not_kcol.native is_not_karb.native density_statistics.native digirth_at_mostk.native
 
 is_kcritical.native: dicoloration.o dicoloration/is_kcritical.c
 	gcc -Wall -march=native -Ofast -o is_kcritical.native dicoloration/is_kcritical.c dicoloration.o
@@ -29,6 +29,9 @@ is_not_kcol.native: dicoloration.o dicoloration/is_not_kcol.c
 
 is_not_karb.native: dicoloration.o dicoloration/is_not_karb.c
 	gcc -Wall -march=native -Ofast -o is_not_karb.native dicoloration/is_not_karb.c dicoloration.o
+
+digirth_at_mostk.native: dicoloration.o dicoloration/digirth_at_mostk.c
+	gcc -Wall -march=native -Ofast -o digirth_at_mostk.native dicoloration/digirth_at_mostk.c dicoloration.o
 
 density_statistics.native: dicoloration.o dicoloration/density_statistics.c
 	gcc -Wall -march=native -Ofast -o density_statistics.native dicoloration/density_statistics.c dicoloration.o

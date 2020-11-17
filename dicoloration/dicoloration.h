@@ -56,6 +56,8 @@ void write_graph6(FILE* fi, graph* g, int n);
 bool has_cycle_mask(graph* g, int n, set mask, bool oriented);
 bool has_cycle(graph* g, int n, bool oriented);
 
+bool digirth_at_leastk(graph* d, int n, int k);
+
 bool is_kcol_aux(graph* d, int n, int k, set current_subgraph,
                  set current_acyclic, int next_vertex, bool oriented);
 

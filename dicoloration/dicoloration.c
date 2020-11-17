@@ -356,6 +356,44 @@ bool has_cycle(graph* g, int n, bool directed)
   return has_cycle_mask(g, n, ALL, directed);
 }
 
+bool digirth_at_leastk(graph *d, int n, int k)
+/* test if digirth(d)>=k */
+{
+  if (k==1) return TRUE;
+
+  graph d2[n];
+
+  int i;
+  int v,w;
+  for (v=0; v<n; ++v)
+  {
+    d2[v] = SINGLETON(v);
+  }
+
+  set dv;
+  set dv2;
+
+  for (i=1; i<k; ++i)
+  {
+    for(v=0; v<n; ++v)
+    {
+      dv = d2[v];
+      dv2 = EMPTY;
+      while ((w=MIN_SET(dv)) < n)
+      {
+        dv2 |= d[w];
+        dv &= ~SINGLETON(w);
+      }
+      if ((dv2 & SINGLETON(v)) != EMPTY)
+      {
+        return FALSE;
+      }
+      d2[v] = dv2;
+    }
+  }
+  return TRUE;
+}
+
 
 bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acyclic,
                  int next_vertex, bool directed)
