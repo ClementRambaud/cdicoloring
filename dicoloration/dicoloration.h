@@ -58,11 +58,9 @@ bool has_cycle(graph* g, int n, bool oriented);
 
 bool digirth_at_leastk(graph* d, int n, int k);
 
-bool is_kcol_aux(graph* d, int n, int k, set current_subgraph,
-                 set current_acyclic, int next_vertex, bool oriented);
-
 bool is_kcol(graph* d, int n, int k);
 bool is_karb(graph* g, int n, int k);
+bool can_be_part_in_k_chordals(graph *g, int n, int k);
 
 bool is_kvertex_critical(graph* d, int n, int k);
 bool is_kcritical(graph* d, int n, int k);

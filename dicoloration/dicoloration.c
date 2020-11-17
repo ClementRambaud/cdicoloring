@@ -356,6 +356,77 @@ bool has_cycle(graph* g, int n, bool directed)
   return has_cycle_mask(g, n, ALL, directed);
 }
 
+bool is_chordal_mask(graph *g, int n, set mask)
+/* we check that each neighboorhood is a clique */
+{
+  int v, w;
+  set mask2 = mask;
+  set gv; /* neighboorhood */
+  while ((v=MIN_SET(mask2))<n)
+  {
+    mask2 &= ~SINGLETON(v);
+    gv = g[v] & mask;
+    while ((w=MIN_SET(gv))<n)
+    {
+      gv &= ~SINGLETON(w);
+      if ((g[w] & g[v]) != (g[v] & ~SINGLETON(w)))
+      { /* non chordal */
+        return FALSE;
+      }
+    }
+  }
+  return TRUE;
+}
+
+bool is_chordal(graph *g, int n, set mask)
+{
+  return is_chordal_mask(g, n, ALL);
+}
+
+bool cnbpikc(graph *g, int n, int k, set current_subgraph,
+             set current_chordal, int next_vertex)
+{
+  if (k==0)
+  {
+    return (current_subgraph == EMPTY);
+  }
+
+  if (k==1)
+  {
+    return is_chordal_mask(g, n, current_subgraph);
+  }
+
+  if (!IN(next_vertex, current_subgraph))
+  {
+    return cnbpikc(g, n, k, current_subgraph, current_chordal, next_vertex + 1);
+  }
+
+  if (next_vertex > n)
+  {
+    if (!is_chordal_mask(g, n, current_chordal))
+    {
+      return FALSE;
+    }
+    else
+    {
+      current_subgraph = DIFF(current_subgraph, current_chordal);
+      int t = MIN_SET(current_subgraph);
+      return cnbpikc(g, n, k-1, current_subgraph, SINGLETON(t), t+1);
+    }
+  }
+
+  return cnbpikc(g, n, k, current_subgraph, ADD(next_vertex, current_chordal),
+                 next_vertex + 1)
+         ||
+         cnbpikc(g, n, k, current_subgraph, current_chordal, next_vertex + 1);
+
+}
+
+inline bool can_be_part_in_k_chordals(graph* g, int n, int k)
+{
+  return cnbpikc(g, n, k, ALL, SINGLETON(0), 1);
+}
+
 bool digirth_at_leastk(graph *d, int n, int k)
 /* test if digirth(d)>=k */
 {
@@ -395,15 +466,16 @@ bool digirth_at_leastk(graph *d, int n, int k)
 }
 
 
-bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acyclic,
-                 int next_vertex, bool directed)
+// bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acyclic,
+//                 int next_vertex, bool directed);
+bool backtrack_aux(bool (*is_not_interesting)(graph *, int, set, bool),
+                   graph* d, int n, int k, set current_subgraph,
+                   set current_interesting,
+                   int next_vertex, bool directed)
 /* check if, in the sub(di)graph induced by current_cubgraph, the acyclic subgraph
  * induced by current_acyclic can be extended with only vertices v >= next_vertex
  * in any k dicoloration */
 {
-  // fprintf(stderr, "n = %d, next_vertex = %d, k = %d,subg = %x, acyclic = %x \n", n,
-  //        next_vertex, k,
-  //        current_subgraph, current_acyclic);
   if (k==0)
   {
     return (n==0);
@@ -411,43 +483,48 @@ bool is_kcol_aux(graph* d, int n, int k, set current_subgraph, set current_acycl
 
   if (k==1)
   {
-    return !has_cycle_mask(d, n, current_subgraph, directed);
+    return !is_not_interesting(d, n, current_subgraph, directed);
   }
   
   if (next_vertex >= n)
   {
-    // fprintf(stderr, "final acyclic = %x \n", current_acyclic);
-    current_subgraph = DIFF(current_subgraph, current_acyclic);
+    current_subgraph = DIFF(current_subgraph, current_interesting);
     /* we fix the next vertex in the next color class
      * we compute the first non colored vertex */
     int t = __builtin_ctz(current_subgraph);
-    return is_kcol_aux(d, n, k - 1, current_subgraph, SINGLETON(t), t+1, directed);
+    return backtrack_aux(is_not_interesting,
+                         d, n, k - 1, current_subgraph, SINGLETON(t), t+1, directed);
   }
 
   /* if we can not add next_vertex */
   if (!IN(next_vertex, current_subgraph) ||
-      has_cycle_mask(d, n, ADD(next_vertex,current_acyclic),directed))
+      is_not_interesting(d, n, ADD(next_vertex,current_interesting),directed))
   {
-    return is_kcol_aux(d, n, k, current_subgraph, current_acyclic, next_vertex + 1,
-                       directed);
+    return backtrack_aux(is_not_interesting,
+                         d, n, k, current_subgraph, current_interesting, next_vertex + 1,
+                         directed);
   }
 
   /* if we can add the vertex */
-  return (is_kcol_aux(d, n, k, current_subgraph, 
-                      ADD(next_vertex, current_acyclic), next_vertex + 1, directed) ||
-          is_kcol_aux(d, n, k, current_subgraph, current_acyclic, next_vertex + 1,
-                      directed));
+  return (backtrack_aux(is_not_interesting,
+                        d, n, k, current_subgraph, 
+                        ADD(next_vertex, current_interesting), next_vertex + 1, directed) ||
+          backtrack_aux(is_not_interesting,
+                        d, n, k, current_subgraph, current_interesting, next_vertex + 1,
+                        directed));
 }
 
 
 inline bool is_kcol(graph* d, int n, int k)
 {
-  return is_kcol_aux(d, n, k, ALL, SINGLETON(0), 1, TRUE); 
+  return backtrack_aux(has_cycle_mask, d, n, k, ALL, SINGLETON(0), 1, TRUE); 
 }
+
 inline bool is_karb(graph* g, int n, int k)
 {
-  return is_kcol_aux(g, n, k, ALL, SINGLETON(0), 1, FALSE); 
+  return backtrack_aux(has_cycle_mask, g, n, k, ALL, SINGLETON(0), 1, FALSE); 
 }
+
 
 inline bool is_kvertex_critical(graph* d, int n, int k)
 {
@@ -458,7 +535,7 @@ inline bool is_kvertex_critical(graph* d, int n, int k)
   int v;
   for (v=0; v<n; ++v)
   {
-    if (!is_kcol_aux(d, n, k-1, DIFF(ALL, SINGLETON(v)), EMPTY, 0, TRUE))
+    if (!backtrack_aux(has_cycle_mask, d, n, k-1, DIFF(ALL, SINGLETON(v)), EMPTY, 0, TRUE))
     {
       return FALSE;
     }
