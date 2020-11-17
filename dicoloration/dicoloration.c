@@ -357,20 +357,63 @@ bool has_cycle(graph* g, int n, bool directed)
 }
 
 bool is_chordal_mask(graph *g, int n, set mask)
-/* we check that each neighboorhood is a clique */
+/* cf rose 1976*/
 {
-  int v, w;
-  set mask2 = mask;
-  set gv; /* neighboorhood */
-  while ((v=MIN_SET(mask2))<n)
+  /* first we compute any ordering */
+  mask &= (1<<n)-1;
+  int ordering[n];
+  set label[n];
+  set unumbered = mask;
+  set unumbered_neig;
+  set mask2;
+  int u, v, w;
+  int i;
+
+  for (v=0; v<n; ++v)
   {
+    label[v] = EMPTY;
+  }
+
+  // A REVOIR COMPLETEMENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! <----------------
+
+  fprintf(stderr, "card(mask)= %d \n", CARD(mask));
+  for (i=CARD(mask); i>1; --i)
+  {
+    /* we take v with the smallest label */
+    mask2 = mask & unumbered;
+    while ((u = MIN_SET(mask2))<n)
+    {
+      mask2 &= ~SINGLETON(u);
+      if (label[u] > label[v])
+      {
+        v = u;
+      }
+    }
+    fprintf(stderr, "v = %d \n", v);
+    ordering[i] = v;
+    unumbered &= ~SINGLETON(v);
+    unumbered_neig = unumbered & g[v];
+    while ((w = MIN_SET(unumbered_neig)) < n)
+    {
+      unumbered_neig &= ~SINGLETON(w);
+      label[w] |= SINGLETON(i);
+    }
+  }
+
+  /* then we check it */
+
+  set gv;
+  mask2 = mask;
+  for (i=0; i<CARD(mask); ++i)
+  {
+    v = ordering[i];
     mask2 &= ~SINGLETON(v);
-    gv = g[v] & mask;
+    gv = g[v] & mask2;
     while ((w=MIN_SET(gv))<n)
     {
-      gv &= ~SINGLETON(w);
-      if ((g[w] & g[v]) != (g[v] & ~SINGLETON(w)))
-      { /* non chordal */
+      gv &= ~ SINGLETON(w);
+      if ((g[w] & mask2) != (g[v] & mask2 & (~SINGLETON(w))))
+      {
         return FALSE;
       }
     }
