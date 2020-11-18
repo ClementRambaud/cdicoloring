@@ -359,60 +359,63 @@ bool has_cycle(graph* g, int n, bool directed)
 bool is_chordal_mask(graph *g, int n, set mask)
 /* cf rose 1976*/
 {
-  /* first we compute any ordering */
+  /* first we compute any ordering with lexicographic bfs */
   mask &= (1<<n)-1;
-  int ordering[n];
-  set label[n];
-  set unumbered = mask;
-  set unumbered_neig;
-  set mask2;
-  int u, v, w;
-  int i;
 
-  for (v=0; v<n; ++v)
+  int  i;
+  int u,v,w;
+  int ordering[CARD(mask)];
+
+  set unumbered = mask;
+  set unumbered2;
+  set gv;
+
+  set label[n];
+  for (u=0; u<n; ++u)
   {
-    label[v] = EMPTY;
+    label[u] = EMPTY;
   }
 
-  // A REVOIR COMPLETEMENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! <----------------
-
-  fprintf(stderr, "card(mask)= %d \n", CARD(mask));
-  for (i=CARD(mask); i>1; --i)
+  for (i=CARD(mask)-1; i>=0; --i)
   {
-    /* we take v with the smallest label */
-    mask2 = mask & unumbered;
-    while ((u = MIN_SET(mask2))<n)
+    unumbered2 = unumbered;
+    /* we pick v unumbered with largest label */
+    v = MIN_SET(unumbered2);
+    while ((u=MIN_SET(unumbered2))<n)
     {
-      mask2 &= ~SINGLETON(u);
-      if (label[u] > label[v])
+      unumbered2 &= ~SINGLETON(u);
+      if (label[u]>label[v])
       {
         v = u;
       }
     }
-    fprintf(stderr, "v = %d \n", v);
+    
     ordering[i] = v;
     unumbered &= ~SINGLETON(v);
-    unumbered_neig = unumbered & g[v];
-    while ((w = MIN_SET(unumbered_neig)) < n)
+    
+    gv = g[v] & mask & unumbered;
+    while ((w=MIN_SET(gv))<n)
     {
-      unumbered_neig &= ~SINGLETON(w);
+      gv &= ~SINGLETON(w);
       label[w] |= SINGLETON(i);
     }
   }
 
-  /* then we check it */
-
-  set gv;
-  mask2 = mask;
+  /* then we check this ordering */
+  
+  set mask2 = mask;
   for (i=0; i<CARD(mask); ++i)
   {
     v = ordering[i];
+    // fprintf(stderr, "v = %d \n", v);
     mask2 &= ~SINGLETON(v);
+ 
     gv = g[v] & mask2;
     while ((w=MIN_SET(gv))<n)
     {
-      gv &= ~ SINGLETON(w);
-      if ((g[w] & mask2) != (g[v] & mask2 & (~SINGLETON(w))))
+      gv &= ~SINGLETON(w);
+      // fprintf(stderr, "g[v] = %x, g[w] = %x, mask2 = %d \n", g[v], g[w], mask2);
+      if ((g[v] & g[w] & mask2) != (g[v] & mask2 & ~SINGLETON(w)))
       {
         return FALSE;
       }
