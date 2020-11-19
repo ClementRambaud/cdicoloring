@@ -501,6 +501,7 @@ bool digirth_at_leastk(graph *d, int n, int k)
         dv2 |= d[w];
         dv &= ~SINGLETON(w);
       }
+      // fprintf(stderr, "v = %d, dv2 = %x \n", v, dv2);
       if ((dv2 & SINGLETON(v)) != EMPTY)
       {
         return FALSE;
