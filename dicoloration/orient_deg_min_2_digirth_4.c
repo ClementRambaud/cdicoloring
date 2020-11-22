@@ -1,6 +1,11 @@
 #include "dicoloration.h"
 
-void orient(FILE *file, graph *g, graph *d, int n, int v)
+FILE *file;
+graph g[MAXN];
+graph d[MAXN];
+int n;
+
+void orient(int v)
 {
   if (v >= n)
   {
@@ -14,7 +19,7 @@ void orient(FILE *file, graph *g, graph *d, int n, int v)
   {
     if (deg_out(d, n, v)>=2 && deg_in(d, n, v) >= 2)
     {
-      orient(file, g, d, n , v+1);
+      orient(v+1);
     }
     return;
   }
@@ -41,7 +46,7 @@ void orient(FILE *file, graph *g, graph *d, int n, int v)
   if (can_add)
   {
     d[v] |=  SINGLETON(w);
-    orient(file, g, d, n, v);
+    orient(v);
     d[v] &= ~SINGLETON(w);
   }
 
@@ -58,9 +63,11 @@ void orient(FILE *file, graph *g, graph *d, int n, int v)
     }
   }
   if (can_add)
-  d[w] |=  SINGLETON(v);
-  orient(file, g, d, n, v);
-  d[w] &= ~SINGLETON(v);
+  {
+    d[w] |=  SINGLETON(v);
+    orient(v);
+    d[w] &= ~SINGLETON(v);
+  }
 
   /* readd edge v w */
   g[v] |= SINGLETON(w);
@@ -70,15 +77,13 @@ void orient(FILE *file, graph *g, graph *d, int n, int v)
 
 int main(int argc, char *argv[])
 {
-  graph g[MAXN];
-  graph d[MAXN];
-  int n;
+  file = stdout;
   while (1)
   {
     read_graph6(stdin, g, &n);
     if (feof(stdin)) break;
     empty_graph(d, n);
-    orient(stdout, g, d, n, 0);
+    orient(0);
   }
 }
 
