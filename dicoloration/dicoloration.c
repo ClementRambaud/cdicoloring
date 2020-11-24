@@ -429,9 +429,10 @@ bool is_chordal(graph *g, int n, set mask)
   return is_chordal_mask(g, n, ALL);
 }
 
-bool cnbpikc(graph *g, int n, int k, set current_subgraph,
+bool cbpikc(graph *g, int n, int k, set current_subgraph,
              set current_chordal, int next_vertex)
 {
+  // fprintf(stderr, "next_vertex = %d \n", next_vertex);
   if (k==0)
   {
     return (current_subgraph == EMPTY);
@@ -442,10 +443,6 @@ bool cnbpikc(graph *g, int n, int k, set current_subgraph,
     return is_chordal_mask(g, n, current_subgraph);
   }
 
-  if (!IN(next_vertex, current_subgraph))
-  {
-    return cnbpikc(g, n, k, current_subgraph, current_chordal, next_vertex + 1);
-  }
 
   if (next_vertex > n)
   {
@@ -457,20 +454,30 @@ bool cnbpikc(graph *g, int n, int k, set current_subgraph,
     {
       current_subgraph = DIFF(current_subgraph, current_chordal);
       int t = MIN_SET(current_subgraph);
-      return cnbpikc(g, n, k-1, current_subgraph, SINGLETON(t), t+1);
+      return cbpikc(g, n, k-1, current_subgraph, SINGLETON(t), 
+                    MIN_SET(current_subgraph & ~SINGLETON(t)));
     }
   }
 
-  return cnbpikc(g, n, k, current_subgraph, ADD(next_vertex, current_chordal),
-                 next_vertex + 1)
+
+  if (!IN(next_vertex, current_subgraph))
+  {
+    fprintf(stderr, "etrange... \n");
+    return cbpikc(g, n, k, current_subgraph, current_chordal, 
+                  next_vertex + 1);
+  }
+
+  return cbpikc(g, n, k, current_subgraph, ADD(next_vertex, current_chordal),
+                next_vertex + 1)
          ||
-         cnbpikc(g, n, k, current_subgraph, current_chordal, next_vertex + 1);
+         cbpikc(g, n, k, current_subgraph, current_chordal,
+                next_vertex + 1);
 
 }
 
 inline bool can_be_part_in_k_chordals(graph* g, int n, int k)
 {
-  return cnbpikc(g, n, k, ALL, SINGLETON(0), 1);
+  return cbpikc(g, n, k, ALL, SINGLETON(0), 1);
 }
 
 bool digirth_at_leastk(graph *d, int n, int k)

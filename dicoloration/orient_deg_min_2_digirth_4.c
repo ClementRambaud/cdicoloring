@@ -17,7 +17,7 @@ void orient(int v)
 
   if (w > n)
   {
-    if (deg_out(d, n, v)>=2 && deg_in(d, n, v) >= 2)
+    if (deg_out(d, n, v) >= 2 && deg_in(d, n, v) >= 2)
     {
       orient(v+1);
     }
@@ -69,7 +69,7 @@ void orient(int v)
     d[w] &= ~SINGLETON(v);
   }
 
-  /* readd edge v w */
+  /* re add edge v w */
   g[v] |= SINGLETON(w);
   g[w] |= SINGLETON(v);
 }
