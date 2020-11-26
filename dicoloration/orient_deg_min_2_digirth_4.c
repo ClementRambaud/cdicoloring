@@ -15,7 +15,7 @@ void orient(int v)
 
   int w = MIN_SET(g[v]);
 
-  if (w > n)
+  if (w >= n)
   {
     if (deg_out(d, n, v) >= 2 && deg_in(d, n, v) >= 2)
     {
@@ -69,7 +69,7 @@ void orient(int v)
     d[w] &= ~SINGLETON(v);
   }
 
-  /* re add edge v w */
+  /* re add edge vw */
   g[v] |= SINGLETON(w);
   g[w] |= SINGLETON(v);
 }

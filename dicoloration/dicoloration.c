@@ -127,7 +127,7 @@ void read_digraph6(FILE *fi, graph* d, int *n)
   }
   if (fgetc(fi) != '\n' && fgetc(fi) != EOF)
   {
-    fprintf(stderr, "ATTENTION, mauvaise lecture! \n");
+    fprintf(stderr, "ATTENTION, possible mauvaise lecture! \n");
   }
 }
 
@@ -462,7 +462,7 @@ bool cbpikc(graph *g, int n, int k, set current_subgraph,
 
   if (!IN(next_vertex, current_subgraph))
   {
-    fprintf(stderr, "etrange... \n");
+    //fprintf(stderr, "etrange... \n");
     return cbpikc(g, n, k, current_subgraph, current_chordal, 
                   next_vertex + 1);
   }
