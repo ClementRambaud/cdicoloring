@@ -1,24 +1,26 @@
-Small C library to deals with graph and digraph colouring.
+Small C library to deal with graph and digraph colouring.
 
 ## Complilation ##
-Run `make`: it will download `nauty` and compile the needed parts of it.
+Run `make`: it will download `nauty` and compile the needed parts of it, and then compile some useful programs (see below).
 
 ## Usage ##
-- `is_not_karb.native k`: reads graph (graph6 format) from stdin and outputs
+- `is_not_karb.native k`: read graph (graph6 format) from stdin and output
    only those which can not be partitionnate in k induced forests.
-- `is_not_kcol.native k`: reads digraphs (digraphs6 format) from stdin
-  and outputs only those which are not k-dicolourable.
-- `is_kcritical.native k`: reads digraphs (digraph6 format) from stdin and 
-  outputs only those which are k-dicritical.
+- `is_not_kcol.native k`: read digraphs (digraphs6 format) from stdin
+  and output only those which are not k-dicolourable.
+- `is_kcritical.native k`: read digraphs (digraph6 format) from stdin and 
+  output only those which are k-dicritical.
+- `cant_be_part_in_k_chordals.native k`: read digraphs and output those which can't be partitioned into k chrodals.
+- `orient_deg_min_2_digirth_4.native k`: generate all the orientation of digirth at least 4 and minimum in/out degree at least 2 of the input (Warning: there is duplicate up to isomorphism).
 
 ### Modified `nauty-directg`: ###
 
-- `directg_min_deg_2 -o`: read graph and outputs its orientation of minimum in and out
+- `directg_min_deg_2 -o`: read graph and output its orientation of minimum in and out
 degree at least 2
-- `directg_min_deg_3 -o`: read graph and outputs its orientation of minimum in and out
+- `directg_min_deg_3 -o`: read graph and output its orientation of minimum in and out
 degree at least 3
 
-Some scripts:
+### Some scripts: ###
 - `./find_3critical.sh n` write to stdout the list of 3-dicritical oriented graphs of
 order n,
 
@@ -28,7 +30,7 @@ The bash script
 cat file.g6 | ./is_not_karb.native 3 | ./directg_deg_min_3 -o \
             | ./is_not_kcol.native 3 > result.d6
 ```
-write in the file `result.d6` all the orientations of a graph in `file.g6` 
+writes in the file `result.d6` all the orientations of a graph in `file.g6` 
 of minimum in and out degree at least 3 and not 3 dicolourable.
 
 ## Interface for dicolouration ##
