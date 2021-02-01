@@ -15,9 +15,9 @@ Run `make`: it will download `nauty` and compile the needed parts of it, and the
 
 ### Modified `nauty-directg`: ###
 
-- `directg_min_deg_2 -o`: read graph and output its orientation of minimum in and out
+- `directg_min_deg_2.native -o`: read graph and output its orientation of minimum in and out
 degree at least 2
-- `directg_min_deg_3 -o`: read graph and output its orientation of minimum in and out
+- `directg_min_deg_3.native -o`: read graph and output its orientation of minimum in and out
 degree at least 3
 
 ### Some scripts: ###
