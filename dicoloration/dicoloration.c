@@ -291,7 +291,7 @@ bool has_cycle_mask(graph* g, int n, set mask, bool directed)
   set visited = EMPTY;
   set in_progress = EMPTY;
 
-  char parent[n];
+  char parent[MAXN];
   if (!directed)
   {
     for (u=0; u<n; ++u)
@@ -300,7 +300,7 @@ bool has_cycle_mask(graph* g, int n, set mask, bool directed)
     }
   }
  
-  int stack[n];
+  int stack[MAXN];
   int top = -1; /* top of the stack */
 
   set gv; /* current list of successors */
@@ -364,7 +364,7 @@ bool is_chordal_mask(graph *g, int n, set mask)
 
   int  i;
   int u,v,w;
-  int ordering[CARD(mask)];
+  int ordering[MAXN];
 
   set unumbered = mask;
   set unumbered2;
@@ -485,7 +485,7 @@ bool digirth_at_leastk(graph *d, int n, int k)
 {
   if (k==1) return TRUE;
 
-  graph d2[n];
+  graph d2[MAXN];
 
   int i;
   int v,w;
